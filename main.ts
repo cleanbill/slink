@@ -3,6 +3,7 @@ import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const env = await load();
 const key = env["SLINK_API_KEY"];
+console.log("STARTING UP, API KEY IS " + key.length + " Characters long");
 
 export const app = new Hono();
 let kv;
@@ -30,7 +31,7 @@ const checkApiKey = (c: Context) => {
   const token = c.req.param("token");
   if (key != token) {
     c.status(403);
-    return c.body("Bad api key");
+    return c.body("Bad api key " + token);
   }
   return null;
 
