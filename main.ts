@@ -2,8 +2,12 @@ import { Context, Hono } from "https://deno.land/x/hono@v3.4.1/mod.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const env = await load();
-const key = env["SLINK_API_KEY"];
-console.log("STARTING UP, API KEY IS " + key.length + " Characters long");
+const key = env["SLINK_API_KEY"] || Deno.env.get("SLINK_API_KEY");
+if (key) {
+  console.log("STARTING UP, API KEY IS " + key.length + " Characters long");
+} else {
+  Deno.exit(-1);
+}
 
 export const app = new Hono();
 let kv;
