@@ -68,30 +68,10 @@ const getBody = async (c: Context) => {
   } catch (er) {
     console.error("Can't parse body", er);
   }
-
   return false;
 }
 
-const checkQueryParamToken = (c: Context) => {
-  const token = c.req.param("token");
-  const apiKeyResponse = checkApiKey(c, token);
-  return { apiKeyResponse, token };
-}
-
-// const getToken = async (c: Context) => {
-//   let body;
-//   try {
-//     body = await c.req.json();
-//     const token = body.token;
-//     return token;
-//   } catch (er) {
-//     console.error("Can't parse body to get token", body, er);
-//   }
-
-//   return false;
-// }
-
-const checkApiKey = (c: Context, token: string) => {
+const checkApiKey = (c: Context, token: string | undefined) => {
   if (!token) {
     c.status(400);
     return c.body("Missing token ");
@@ -111,10 +91,11 @@ export const app = new Hono();
 
 app.get("/", (c) => c.redirect(BASE_URL + '/notoken'));
 
-app.post(BASE_URL + ":token", async (c: Context) => {
+app.post(BASE_URL, async (c: Context) => {
   console.info('POST');
   const body = await getBody(c);
-  const apiKeyResponse = checkApiKey(c, body?.token);
+  const token = c.req.header('X-API-KEY') || "";
+  const apiKeyResponse = checkApiKey(c, token);
   if (apiKeyResponse) {
     console.error('Bad token for post');
     return apiKeyResponse;
@@ -127,16 +108,17 @@ app.post(BASE_URL + ":token", async (c: Context) => {
   return c.json(result);
 });
 
-app.get(BASE_URL + ":token", async (c) => {
+app.get(BASE_URL, async (c) => {
   console.info('GET');
-  const checkResult = checkQueryParamToken(c);
-  if (checkResult.apiKeyResponse) {
+  const token = c.req.header('X-API-KEY') || "";
+  const apiKeyResponse = checkApiKey(c, token);
+  if (apiKeyResponse) {
     console.error('Bad token for get');
-    return checkResult.apiKeyResponse;
+    return apiKeyResponse;
   }
   console.info('Token OK');
-  const result = await kv.get([BASE, checkResult.token]);
-  console.info("'" + checkResult.token + '" request got ', result);
+  const result = await kv.get([BASE, token]);
+  console.info("'" + token + '" request got ', result);
   console.info('SENT');
   console.info('');
   return c.json(result);
