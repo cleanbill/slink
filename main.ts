@@ -2,12 +2,22 @@ import { Context, Hono } from "https://deno.land/x/hono@v3.4.1/mod.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const env = await load();
-const key = env["SLINK_API_KEY"] || Deno.env.get("SLINK_API_KEY");
-if (key) {
-  console.log("STARTING UP, API KEY IS " + key.length + " Characters long");
-} else {
-  Deno.exit(-1);
+
+const ENV_TOKEN = "SLINK_API_KEY";
+const SYNC_MAX = 33;
+
+const getKey = (number = -1) => {
+  const token = (number < 1) ? ENV_TOKEN : "SLINK_API_KEY" + "_" + number;
+  const key = env[token] || Deno.env.get(token);
+  if (key) {
+    console.log(number + ". STARTING UP, API KEY IS " + key.length + " Characters long");
+  } else {
+    return false;
+  }
+  return key;
 }
+
+const tokens = [...Array(SYNC_MAX).keys()].map((n) => getKey(n)).filter((v) => v);
 
 export const app = new Hono();
 let kv;
@@ -33,7 +43,7 @@ app.get("/", (c) => c.redirect("/locals/main"));
 
 const checkApiKey = (c: Context) => {
   const token = c.req.param("token");
-  if (key != token) {
+  if (tokens.indexOf(token) == -1) {
     c.status(403);
     return c.body("Bad api key " + token);
   }
