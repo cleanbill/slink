@@ -118,7 +118,7 @@ app.get(BASE_URL, async (c) => {
   }
   console.info('Token OK');
   const result = await kv.get([BASE, token]);
-  console.info("'" + token + '" request got ', result);
+  console.info("'" + token + '" request got ', result.length);
   console.info('SENT');
   console.info('');
   return c.json(result);
