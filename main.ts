@@ -118,7 +118,11 @@ app.get(BASE_URL, async (c) => {
   }
   console.info('Token OK');
   const result = await kv.get([BASE, token]);
-  console.info("'" + token + '" request got ', result.length);
+  if (result) {
+    console.info("'" + token + '" request got data back');
+  } else {
+    console.warn("'" + token + '" request got nothing back!?');
+  }
   console.info('SENT');
   console.info('');
   return c.json(result);
