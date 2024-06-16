@@ -103,14 +103,17 @@ app.post(BASE_URL, async (c: Context) => {
   }
   console.info('Token OK');
   body.dtm = new Date().getTime();
+  body.inTheClear = false;
   let toStore = body;
   try {
     toStore = encrypt(token, JSON.stringify(body));
   } catch (er) {
-    console.error('Cannot encrypt', er)
+    console.error('Cannot encrypt', er);
+    body.inTheClear = true;
   }
   await kv.set([BASE, body.token], toStore);
-  console.log('SAVED ');
+  const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
+  console.log(message);
   console.info('');
   return c.json(body);
 });
@@ -130,6 +133,10 @@ app.get(BASE_URL, async (c) => {
   } else {
     console.warn("'" + token + '" request got nothing back!?');
   }
+  if (result.inTheClear) {
+    console.info('CLEAR SENT');
+    return c.json(result);
+  }
   let decode = result
   try {
     decode = decipher(token, result);
@@ -138,6 +145,7 @@ app.get(BASE_URL, async (c) => {
   }
   console.info('SENT');
   return c.json(decode);
+
 });
 
 Deno.serve(app.fetch);
