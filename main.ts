@@ -1,6 +1,8 @@
 import { Context, Hono } from "https://deno.land/x/hono@v3.4.1/mod.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
+import { encrypt, decipher } from "./crypto.ts";
+
 const BASE = 'locals'
 const BASE_URL = '/' + BASE + '/';
 const ENV_TOKEN = "SLINK_API_KEY";
@@ -39,7 +41,6 @@ try {
   console.log(kv);
   kv = testKV();
 }
-
 
 // Server Tokens setup for environment variables
 
@@ -102,10 +103,16 @@ app.post(BASE_URL, async (c: Context) => {
   }
   console.info('Token OK');
   body.dtm = new Date().getTime();
-  const result = await kv.set([BASE, body.token], body);
-  console.log('SAVED');
+  let toStore = body;
+  try {
+    toStore = encrypt(token, JSON.stringify(body));
+  } catch (er) {
+    console.error('Cannot encrypt', er)
+  }
+  await kv.set([BASE, body.token], toStore);
+  console.log('SAVED ');
   console.info('');
-  return c.json(result);
+  return c.json(body);
 });
 
 app.get(BASE_URL, async (c) => {
@@ -123,9 +130,14 @@ app.get(BASE_URL, async (c) => {
   } else {
     console.warn("'" + token + '" request got nothing back!?');
   }
+  let decode = result
+  try {
+    decode = decipher(token, result);
+  } catch (er) {
+    console.error('cannot decipher ', er);
+  }
   console.info('SENT');
-  console.info('');
-  return c.json(result);
+  return c.json(decode);
 });
 
 Deno.serve(app.fetch);
