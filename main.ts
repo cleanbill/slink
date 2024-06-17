@@ -105,7 +105,7 @@ app.post(BASE_URL, async (c: Context) => {
   body.dtm = new Date().getTime();
   body.inTheClear = true;
   try {
-    body.data = encrypt(token, JSON.stringify(body.data));
+    body.data = encrypt(token, JSON.stringify(body));
     body.inTheClear = false;
   } catch (er) {
     console.error('Cannot encrypt', er);
