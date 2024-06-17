@@ -103,14 +103,14 @@ app.post(BASE_URL, async (c: Context) => {
   }
   console.info('Token OK');
   body.dtm = new Date().getTime();
-  body.inTheClear = false;
+  body.inTheClear = true;
   let toStore = body;
-  try {
-    toStore = encrypt(token, JSON.stringify(body));
-  } catch (er) {
-    console.error('Cannot encrypt', er);
-    body.inTheClear = true;
-  }
+  // try {
+  //   toStore = encrypt(token, JSON.stringify(body));
+  //   body.inTheClear = false;
+  // } catch (er) {
+  //   console.error('Cannot encrypt', er);
+  // }
   await kv.set([BASE, body.token], toStore);
   const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
   console.log(message);
