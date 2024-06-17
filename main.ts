@@ -104,14 +104,13 @@ app.post(BASE_URL, async (c: Context) => {
   console.info('Token OK');
   body.dtm = new Date().getTime();
   body.inTheClear = true;
-  let toStore = body;
-  // try {
-  //   toStore = encrypt(token, JSON.stringify(body));
-  //   body.inTheClear = false;
-  // } catch (er) {
-  //   console.error('Cannot encrypt', er);
-  // }
-  await kv.set([BASE, body.token], toStore);
+  try {
+    body.data = encrypt(token, JSON.stringify(body.data));
+    body.inTheClear = false;
+  } catch (er) {
+    console.error('Cannot encrypt', er);
+  }
+  await kv.set([BASE, body.token], body);
   const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
   console.log(message);
   console.info('');
@@ -133,9 +132,14 @@ app.get(BASE_URL, async (c) => {
   } else {
     console.warn("'" + token + '" request got nothing back!?');
   }
-  if (result.inTheClear) {
-    console.info('CLEAR SENT');
-    return c.json(result);
+  try {
+    const tester = JSON.parse(result);
+    if (tester.inTheClear) {
+      console.info('CLEAR SENT');
+      return c.json(result);
+    }
+  } catch (er) {
+    console.error(er);
   }
   let decode = result
   try {
