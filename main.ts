@@ -103,18 +103,20 @@ app.post(BASE_URL, async (c: Context) => {
   }
   console.info('Token OK');
   body.dtm = new Date().getTime();
+  const data = { ...body.data };
   body.inTheClear = true;
-  try {
-    body.data = encrypt(token, JSON.stringify(body));
-    body.inTheClear = false;
-  } catch (er) {
-    console.error('Cannot encrypt', er);
-  }
+  console.warn('Encyption disabled');
+  // try {
+  //   body.data = encrypt(token, JSON.stringify(data));
+  //   body.inTheClear = false;
+  // } catch (er) {
+  //   console.error('Cannot encrypt', er);
+  // }
   await kv.set([BASE, body.token], body);
   const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
   console.log(message);
   console.info('');
-  return c.json(body);
+  return c.json(data);
 });
 
 app.get(BASE_URL, async (c) => {
@@ -133,22 +135,21 @@ app.get(BASE_URL, async (c) => {
     console.warn("'" + token + '" request got nothing back!?');
   }
   try {
-    const tester = JSON.parse(result);
-    if (tester.inTheClear) {
+    if (result.inTheClear) {
       console.info('CLEAR SENT');
       return c.json(result);
     }
   } catch (er) {
     console.error(er);
   }
-  let decode = result
+  let data = { ...result.data }
   try {
-    decode = decipher(token, result);
+    data = decipher(token, data);
   } catch (er) {
     console.error('cannot decipher ', er);
   }
   console.info('SENT');
-  return c.json(decode);
+  return c.json(data);
 
 });
 
