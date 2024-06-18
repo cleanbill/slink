@@ -135,10 +135,10 @@ app.get(BASE_URL, async (c) => {
     console.warn("'" + token + '" request got nothing back!?');
   }
   try {
-    if (result.inTheClear) {
-      console.info('CLEAR SENT');
-      return c.json(result);
-    }
+    // if (result.inTheClear) {
+    console.info('CLEAR SENT');
+    return c.json(result);
+    // }
   } catch (er) {
     console.error(er);
   }
