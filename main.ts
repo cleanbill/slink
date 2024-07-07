@@ -104,6 +104,9 @@ app.post(BASE_URL, async (c: Context) => {
   console.info('Token OK');
   body.dtm = new Date().getTime();
   const data = { ...body.data };
+  if (!data.versionstamp) {
+    data.versionstamp = '00000000000000000000';
+  }
   body.inTheClear = true;
   console.warn('Encyption disabled');
   // try {
@@ -128,12 +131,17 @@ app.get(BASE_URL, async (c) => {
     return apiKeyResponse;
   }
   console.info('Token OK');
-  const result = await kv.get([BASE, token]);
-  if (result) {
+  const result = await kv.get([BASE, token]) || {};
+  if (Object.keys(result).length > 0) {
     console.info("'" + token + '" request got data back');
   } else {
     console.warn("'" + token + '" request got nothing back!?');
   }
+
+  if (!result.versionstamp) {
+    result.versionstamp = '00000000000000000000';
+  }
+
   try {
     // if (result.inTheClear) {
     console.info('CLEAR SENT');
