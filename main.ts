@@ -115,7 +115,6 @@ app.post(BASE_URL, async (c: Context) => {
   // } catch (er) {
   //   console.error('Cannot encrypt', er);
   // }
-  console.log(body);
   await kv.set([BASE, body.token], body);
   const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
   console.log(message);
