@@ -59,10 +59,16 @@ const tokens = [...Array(SYNC_MAX).keys()].map((n) => getKey(n)).filter((v) => v
 const validToken = (token: string) => (tokens.indexOf(token) > -1);
 
 
+export type SyncData = {
+  dtm: number;
+  data: any;
+  inTheClear: boolean;
+  token: string;
+}
 
 //  Helper functions....
 
-const getBody = async (c: Context) => {
+const getBody = async (c: Context): Promise<false | SyncData> => {
   try {
     const body = await c.req.json();
     return body;
@@ -95,6 +101,9 @@ app.get("/", (c: { redirect: (arg0: string) => any; }) => c.redirect(BASE_URL + 
 app.post(BASE_URL, async (c: Context) => {
   console.info('POST');
   const body = await getBody(c);
+  if (!body) {
+    return;
+  }
   const token = c.req.header('X-API-KEY') || "";
   const apiKeyResponse = checkApiKey(c, token);
   if (apiKeyResponse) {
@@ -116,7 +125,7 @@ app.post(BASE_URL, async (c: Context) => {
   //   console.error('Cannot encrypt', er);
   // }
   try {
-    console.log("About to store " + JSON.stringify(body).length + " JSON");
+    console.log("About to store " + JSON.stringify(body).length + " data");
   } catch (er) {
     console.error("Logging failed for ", body, er);
   }
@@ -124,7 +133,7 @@ app.post(BASE_URL, async (c: Context) => {
   const message = body.inTheClear ? 'CLEAR SAVE' : 'SAVE';
   console.log(message);
   console.info('');
-  return c.json(data);
+  return c.json(body);
 });
 
 app.get(BASE_URL, async (c) => {
